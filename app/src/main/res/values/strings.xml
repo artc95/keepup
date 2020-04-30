@@ -4,4 +4,5 @@
     <string name="enter_price">Price</string>
     <string name="enter_qty">Quantity</string>
     <string name="add_shares">Add</string>
+    <string name="portfolio">Portfolio</string>
 </resources>

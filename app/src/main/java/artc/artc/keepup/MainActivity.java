@@ -1,6 +1,5 @@
 package artc.artc.keepup;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -10,16 +9,14 @@ import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
+import android.content.Intent;
 
 import java.util.Calendar;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     EditText sharesPrice;
     EditText sharesQty;
     Button buttonAdd;
+
+    Button buttonPortfolio;
 
     DatabaseReference databaseShares;
 
@@ -41,13 +40,21 @@ public class MainActivity extends AppCompatActivity {
         sharesPrice = findViewById(R.id.sharesPrice);
         sharesQty = findViewById(R.id.sharesQty);
         buttonAdd = findViewById(R.id.buttonAdd);
-
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 AddTrip();
             }
         });
+
+        buttonPortfolio = findViewById(R.id.buttonPortfolio);
+        buttonPortfolio.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                OpenPortfolio();
+            }
+        });
+
     }
 
     private void AddTrip() {
@@ -70,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Enter a Price!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    public void OpenPortfolio(){
+        Intent intent = new Intent(this, Portfolio.class);
+        startActivity(intent);
     }
 
 }
