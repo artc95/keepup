@@ -1,15 +1,53 @@
 package artc.artc.keepup;
 
-import androidx.appcompat.app.AppCompatActivity;
+public class Shares {
 
-import android.os.Bundle;
-import android.widget.Button;
+    String sharesTimestamp;
+    String sharesTicker;
+    String sharesPrice;
+    String sharesQty;
 
-public class Shares extends AppCompatActivity {
+    public Shares(){
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
     }
+
+    public Shares(String sharesTimestamp, String sharesTicker, String sharesPrice, String sharesQty) {
+        this.sharesTimestamp = sharesTimestamp;
+        this.sharesTicker = sharesTicker;
+        this.sharesPrice = sharesPrice;
+        this.sharesQty = sharesQty;
+    }
+
+    public String getSharesTimestamp() {
+        return sharesTimestamp;
+    }
+
+    public void setSharesTimestamp(String sharesTimestamp) {
+        this.sharesTimestamp = sharesTimestamp;
+    }
+
+    public String getSharesTicker() {
+        return sharesTicker;
+    }
+
+    public void setSharesTicker(String sharesTicker) {
+        this.sharesTicker = sharesTicker;
+    }
+
+    public String getSharesPrice() {
+        return sharesPrice;
+    }
+
+    public void setSharesPrice(String sharesPrice) {
+        this.sharesPrice = sharesPrice;
+    }
+
+    public String getSharesQty() {
+        return sharesQty;
+    }
+
+    public void setSharesQty(String sharesQty) {
+        this.sharesQty = sharesQty;
+    }
+
 }
