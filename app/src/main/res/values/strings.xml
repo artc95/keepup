@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">keepup</string>
+    <string name="enter_timestamp">Timestamp (ddMMyy,HHmm) if not now</string>
     <string name="enter_ticker">Ticker e.g. AJBU.SI</string>
     <string name="enter_price">Price</string>
     <string name="enter_qty">Quantity</string>
     <string name="add_shares">Add</string>
     <string name="portfolio">Portfolio</string>
+    <string name="filter_ticker">Filter Ticker e.g. AJBU.SI</string>
+    <string name="filter">Filter</string>
 </resources>
