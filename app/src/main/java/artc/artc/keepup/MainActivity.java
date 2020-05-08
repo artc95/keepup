@@ -20,9 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText sharesTicker;
-    EditText sharesPrice;
-    EditText sharesQty;
+    EditText sharesTimestamp, sharesTicker, sharesPrice, sharesQty;
     Button buttonAdd;
 
     Button buttonPortfolio;
@@ -36,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         databaseShares = FirebaseDatabase.getInstance().getReference();
 
+        sharesTimestamp = findViewById(R.id.sharesTimestamp);
         sharesTicker = findViewById(R.id.sharesTicker);
         sharesPrice = findViewById(R.id.sharesPrice);
         sharesQty = findViewById(R.id.sharesQty);
@@ -58,21 +57,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void AddTrip() {
+
+        String timestamp = sharesTimestamp.getText().toString().trim();
+        if (!TextUtils.isEmpty(timestamp)){
+            sharesTimestamp.setText("");
+        } else {
+            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy,HHmmss", Locale.ROOT);
+            timestamp = formatter.format(calendar.getTime());
+        }
+
         String ticker = sharesTicker.getText().toString().trim();
+        sharesTicker.setText("");
+
         String price = sharesPrice.getText().toString().trim();
+        sharesPrice.setText("");
+
         String qty = sharesQty.getText().toString().trim();
+        sharesQty.setText("");
 
         if (!TextUtils.isEmpty(price)) {
-            Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy,HHmm", Locale.ROOT);
-
-            String timestamp = formatter.format(calendar.getTime());
 
             Shares shares = new Shares(timestamp, ticker, price, qty);
             databaseShares.child(timestamp).setValue(shares);
-            sharesTicker.setText("");
-            sharesPrice.setText("");
-            sharesQty.setText("");
+
             Toast.makeText(this, "Shares added!", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "Enter a Price!", Toast.LENGTH_LONG).show();
