@@ -7,10 +7,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.Button;
+import android.widget.AdapterView;
 import android.widget.TextView;
-import android.text.TextUtils;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,34 +20,37 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class Portfolio extends AppCompatActivity {
 
     RecyclerView recyclerPortfolio;
     FirebaseRecyclerOptions<Shares> options;
-    FirebaseRecyclerAdapter<Shares, PortfolioViewHolder> adapter;
+    FirebaseRecyclerAdapter<Shares, PortfolioViewHolder> adapterRecycler;
 
     DatabaseReference databaseShares;
     Query databaseSearch;
 
-    EditText filterTicker;
-    Button buttonFilter;
-
     TextView totalQty;
+
+    Spinner spinnerTickers;
 
     @Override
     protected void onStart() {
         super.onStart();
-        adapter.startListening();
+        adapterRecycler.startListening();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        adapter.stopListening();
+        adapterRecycler.stopListening();
     }
 
     @Override
@@ -56,14 +59,71 @@ public class Portfolio extends AppCompatActivity {
         setContentView(R.layout.activity_portfolio);
 
         databaseShares = FirebaseDatabase.getInstance().getReference();
-        QtySum(databaseShares);
 
+        // 1) Populate Spinner with Tickers in portfolio
+        spinnerTickers = findViewById(R.id.spinnerTickers);
+        databaseShares.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ArrayList<String> arrayTickersRaw = new ArrayList<>();
+
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
+                    Shares shares = data.getValue(Shares.class);
+                    String ticker = shares.getSharesTicker();
+                    arrayTickersRaw.add(ticker);
+                }
+
+                // arrayTickersRaw may have duplicates, remove by creating new arrayTickers
+                ArrayList<String> arrayTickers = new ArrayList<>();
+                for (String element : arrayTickersRaw) {
+                    if (!arrayTickers.contains(element)) {
+                        arrayTickers.add(element);
+                    }
+                }
+                arrayTickers.add("*All");
+                Collections.sort(arrayTickers);
+                ArrayAdapter<String> adapterTickers = new ArrayAdapter<String>(Portfolio.this, android.R.layout.simple_spinner_item, arrayTickers);
+                adapterTickers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerTickers.setAdapter(adapterTickers);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
+
+        // 2) Populate Recycler with portfolio details
         recyclerPortfolio = findViewById(R.id.recyclerPortfolio);
         recyclerPortfolio.setHasFixedSize(true);
         recyclerPortfolio.setLayoutManager(new LinearLayoutManager(this));
+        DisplayPortfolio(databaseShares);
 
-        options = new FirebaseRecyclerOptions.Builder<Shares>().setQuery(databaseShares, Shares.class).build();
-        adapter = new FirebaseRecyclerAdapter<Shares, PortfolioViewHolder>(options) {
+        // 3) Filter by Spinner selection
+        spinnerTickers.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                String filter_ticker = spinnerTickers.getSelectedItem().toString();
+
+                if (filter_ticker.equals("*All")) {
+                    // Filter "All" displays entire portfolio
+                    databaseShares = FirebaseDatabase.getInstance().getReference();
+                    DisplayPortfolio(databaseShares);
+                } else {
+                    databaseSearch = databaseShares.orderByChild("sharesTicker").equalTo(filter_ticker);
+                    DisplayPortfolio(databaseSearch);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+    }
+
+    private void DisplayPortfolio(Query database) {
+        // a) populate recyclerPortfolio with entire/filtered portfolio
+        options = new FirebaseRecyclerOptions.Builder<Shares>().setQuery(database, Shares.class).build();
+        adapterRecycler = new FirebaseRecyclerAdapter<Shares, PortfolioViewHolder>(options) {
             @Override
             protected void onBindViewHolder(@NonNull PortfolioViewHolder holder, int position, @NonNull Shares shares) {
                 holder.sharesTimestamp.setText(shares.getSharesTimestamp());
@@ -78,73 +138,10 @@ public class Portfolio extends AppCompatActivity {
                 return new PortfolioViewHolder(LayoutInflater.from(Portfolio.this).inflate(R.layout.portfolio_item_layout, viewGroup, false));
             }
         };
-        recyclerPortfolio.setAdapter(adapter);
+        recyclerPortfolio.setAdapter(adapterRecycler);
+        adapterRecycler.startListening();
 
-        filterTicker = findViewById(R.id.filterTicker);
-        buttonFilter = findViewById(R.id.buttonFilter);
-        buttonFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                adapter.stopListening();
-                FilterTicker();
-            }
-        });
-
-    }
-
-    private void FilterTicker() {
-        String filter_ticker = filterTicker.getText().toString();
-        filterTicker.setText("");
-
-        if(filter_ticker.equals("")){
-            // Filter without filter_ticker input displays entire portfolio
-            databaseShares = FirebaseDatabase.getInstance().getReference();
-            QtySum(databaseShares);
-            options = new FirebaseRecyclerOptions.Builder<Shares>().setQuery(databaseShares, Shares.class).build();
-            adapter = new FirebaseRecyclerAdapter<Shares, PortfolioViewHolder>(options) {
-                @Override
-                protected void onBindViewHolder(@NonNull PortfolioViewHolder holder, int position, @NonNull Shares shares) {
-                    holder.sharesTimestamp.setText(shares.getSharesTimestamp());
-                    holder.sharesTicker.setText(shares.getSharesTicker());
-                    holder.sharesPrice.setText(shares.getSharesPrice());
-                    holder.sharesQty.setText(shares.getSharesQty());
-                }
-
-                @NonNull
-                @Override
-                public PortfolioViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                    return new PortfolioViewHolder(LayoutInflater.from(Portfolio.this).inflate(R.layout.portfolio_item_layout, viewGroup, false));
-                }
-            };
-            recyclerPortfolio.setAdapter(adapter);
-            adapter.startListening();
-        } else {
-            databaseSearch = databaseShares.orderByChild("sharesTicker").equalTo(filter_ticker);
-            QtySum(databaseSearch);
-
-            options = new FirebaseRecyclerOptions.Builder<Shares>().setQuery(databaseSearch, Shares.class).build();
-            adapter = new FirebaseRecyclerAdapter<Shares, PortfolioViewHolder>(options) {
-                @Override
-                protected void onBindViewHolder(@NonNull PortfolioViewHolder holder, int position, @NonNull Shares shares) {
-                    holder.sharesTimestamp.setText(shares.getSharesTimestamp());
-                    holder.sharesTicker.setText(shares.getSharesTicker());
-                    holder.sharesPrice.setText(shares.getSharesPrice());
-                    holder.sharesQty.setText(shares.getSharesQty());
-                }
-
-                @NonNull
-                @Override
-                public PortfolioViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                    return new PortfolioViewHolder(LayoutInflater.from(Portfolio.this).inflate(R.layout.portfolio_item_layout, viewGroup, false));
-                }
-            };
-
-            recyclerPortfolio.setAdapter(adapter);
-            adapter.startListening();
-        }
-    }
-
-    private void QtySum(Query database) {
+        // b) calculate and display overall information (i.e. Total Qty, Total Value) for entire/filtered portfolio
         totalQty = findViewById(R.id.totalQty);
 
         database.addValueEventListener(new ValueEventListener() {
@@ -152,7 +149,7 @@ public class Portfolio extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int total_qty = 0;
 
-                for (DataSnapshot data:dataSnapshot.getChildren()){
+                for (DataSnapshot data : dataSnapshot.getChildren()) {
                     Shares shares = data.getValue(Shares.class);
                     int qty = Integer.parseInt(shares.getSharesQty());
                     total_qty = total_qty + qty;
@@ -167,3 +164,4 @@ public class Portfolio extends AppCompatActivity {
         });
     }
 }
+
