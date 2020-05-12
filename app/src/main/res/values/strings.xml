@@ -6,7 +6,6 @@
     <string name="enter_qty">Quantity</string>
     <string name="add_shares">Add</string>
     <string name="portfolio">Portfolio</string>
-    <string name="filter_ticker">Filter Ticker e.g. AJBU.SI</string>
-    <string name="filter">Filter/Blank to Clear</string>
+    <string name="filter_ticker">Filter by Ticker:</string>
     <string name="total_quantity">Total Quantity:</string>
 </resources>
