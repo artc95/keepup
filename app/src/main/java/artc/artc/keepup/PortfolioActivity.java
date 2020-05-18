@@ -28,7 +28,7 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class Portfolio extends AppCompatActivity {
+public class PortfolioActivity extends AppCompatActivity {
 
     RecyclerView recyclerPortfolio;
     FirebaseRecyclerOptions<Shares> options;
@@ -58,7 +58,9 @@ public class Portfolio extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_portfolio);
 
-        databaseShares = FirebaseDatabase.getInstance().getReference();
+        // Get user_email and user_id from LoginActivity and restrict access
+        final String user_id = getIntent().getStringExtra("user_id");
+        databaseShares = FirebaseDatabase.getInstance().getReference().child(user_id);
 
         // 1) Populate Spinner with Tickers in portfolio
         spinnerTickers = findViewById(R.id.spinnerTickers);
@@ -82,7 +84,7 @@ public class Portfolio extends AppCompatActivity {
                 }
                 arrayTickers.add("*All");
                 Collections.sort(arrayTickers);
-                ArrayAdapter<String> adapterTickers = new ArrayAdapter<String>(Portfolio.this, android.R.layout.simple_spinner_item, arrayTickers);
+                ArrayAdapter<String> adapterTickers = new ArrayAdapter<String>(PortfolioActivity.this, android.R.layout.simple_spinner_item, arrayTickers);
                 adapterTickers.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerTickers.setAdapter(adapterTickers);
             }
@@ -106,7 +108,7 @@ public class Portfolio extends AppCompatActivity {
 
                 if (filter_ticker.equals("*All")) {
                     // Filter "All" displays entire portfolio
-                    databaseShares = FirebaseDatabase.getInstance().getReference();
+                    databaseShares = FirebaseDatabase.getInstance().getReference(user_id);
                     DisplayPortfolio(databaseShares);
                 } else {
                     databaseSearch = databaseShares.orderByChild("sharesTicker").equalTo(filter_ticker);
@@ -135,7 +137,7 @@ public class Portfolio extends AppCompatActivity {
             @NonNull
             @Override
             public PortfolioViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                return new PortfolioViewHolder(LayoutInflater.from(Portfolio.this).inflate(R.layout.portfolio_item_layout, viewGroup, false));
+                return new PortfolioViewHolder(LayoutInflater.from(PortfolioActivity.this).inflate(R.layout.portfolio_item_layout, viewGroup, false));
             }
         };
         recyclerPortfolio.setAdapter(adapterRecycler);
