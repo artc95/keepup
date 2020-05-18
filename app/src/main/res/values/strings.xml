@@ -8,4 +8,12 @@
     <string name="portfolio">Portfolio</string>
     <string name="filter_ticker">Filter by Ticker:</string>
     <string name="total_quantity">Total Quantity:</string>
+    <string name="email_address">Email Address</string>
+    <string name="password">Password</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="send_OTP">Send OTP</string>
+    <string name="OTP">OTP</string>
+    <string name="verify_OTP">Verify</string>
 </resources>

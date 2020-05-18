@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import android.view.View;
 import android.text.TextUtils;
+import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
@@ -21,9 +22,8 @@ import com.google.firebase.database.FirebaseDatabase;
 public class MainActivity extends AppCompatActivity {
 
     EditText sharesTimestamp, sharesTicker, sharesPrice, sharesQty;
-    Button buttonAdd;
-
-    Button buttonPortfolio;
+    Button buttonAdd, buttonPortfolio;
+    TextView textUser;
 
     DatabaseReference databaseShares;
 
@@ -32,12 +32,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        databaseShares = FirebaseDatabase.getInstance().getReference();
+        // Get user_email and user_id from LoginActivity and restrict access
+        final String user_email = getIntent().getStringExtra("user_email");
+        final String user_id = getIntent().getStringExtra("user_id");
+        textUser = findViewById(R.id.textUser);
+        textUser.setText(user_email);
+
+        databaseShares = FirebaseDatabase.getInstance().getReference(user_id);
 
         sharesTimestamp = findViewById(R.id.sharesTimestamp);
         sharesTicker = findViewById(R.id.sharesTicker);
         sharesPrice = findViewById(R.id.sharesPrice);
         sharesQty = findViewById(R.id.sharesQty);
+
         buttonAdd = findViewById(R.id.buttonAdd);
         buttonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         buttonPortfolio.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                OpenPortfolio();
+                OpenPortfolio(user_email, user_id);
             }
         });
 
@@ -87,8 +94,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void OpenPortfolio(){
-        Intent intent = new Intent(this, Portfolio.class);
+    public void OpenPortfolio(String user_email, String user_id){
+        Intent intent = new Intent(this, PortfolioActivity.class);
+        intent.putExtra("user_email", user_email);
+        intent.putExtra("user_id", user_id);
         startActivity(intent);
     }
 
